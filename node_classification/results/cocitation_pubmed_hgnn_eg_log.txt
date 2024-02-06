@@ -1,0 +1,2 @@
+EG Start train on dataset cocitation_pubmed, model:hgnn
+AVG TIME: 20.157 ± 2.182 

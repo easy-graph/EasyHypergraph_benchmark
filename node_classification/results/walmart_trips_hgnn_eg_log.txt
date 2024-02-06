@@ -1,0 +1,1 @@
+EG Start train on dataset walmart_trips, model:hgnn
