@@ -1,0 +1,2 @@
+# easygraph_hypergraph_benchmark_20240201
+Benchmark codes for EasyGraph-hypergraph
