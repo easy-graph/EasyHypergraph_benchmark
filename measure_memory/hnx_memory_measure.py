@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0,"/home/msn/ybd/Easy-Graph")
+sys.path.insert(0,"/opt/reconstruct/Easy-Graph")
 
 import easygraph as eg
 import dhg
@@ -47,23 +47,21 @@ def load_dataset(nodes_path, edges_path):
     return hg_hnx
 
 def load_cocitation_dataset(dataset_name = "cora"):
-    if dataset_name == 'cora_cocitation':
-        cocitation_dataset = eg.CocitationCora()
-    elif dataset_name == "cora_authorship":
-        cocitation_dataset = dhg.data.CoauthorshipCora()
+    if dataset_name == 'trivago_clicks':
+        dataset = eg.trivago_clicks()
     elif dataset_name == "pubmed":
-        cocitation_dataset = eg.CocitationPubmed()
+        dataset = eg.CocitationPubmed()
     elif dataset_name == "dblp_authorship":
-        cocitation_dataset = dhg.data.CoauthorshipDBLP()
-    else:
-        cocitation_dataset = eg.CocitationCiteseer()
+        dataset = eg.CoauthorshipDBLP()
+    elif dataset_name == "yelp":
+        dataset = eg.YelpRestaurant()
+    if dataset_name not in ['trivago_clicks']:
+        dataset.needs_to_load("edge_list")
 
-    cocitation_dataset.needs_to_load("edge_list")
-    edge_lst = set()
     edge_reindex_lst = set()
     node_dict = {}
     node_index = 0
-    for e in cocitation_dataset['edge_list']:
+    for e in dataset['edge_list']:
         # edge_lst.add(tuple(e))
         edge_reindex = []
         for n in e:
@@ -84,8 +82,7 @@ def load_cocitation_dataset(dataset_name = "cora"):
     
 
 if __name__ == "__main__":
-    print("start test on cocitation-cora dataset.......")
-    hg_hnx = load_cocitation_dataset("dblp_authorship")
+    hg_hnx = load_cocitation_dataset("trivago_clicks")
     
     # hg_hnx = load_dataset("/home/msn/ybd/Easy-Graph/hypergraph-bench/eg_hypergraph_dataset/walmart-trips/node-labels-walmart-trips.txt","/home/msn/ybd/Easy-Graph/hypergraph-bench/eg_hypergraph_dataset/walmart-trips/hyperedges-walmart-trips.txt")
 

@@ -1,15 +1,18 @@
 import copy
 import os, sys
-sys.path.insert(0,"/Users/yizhihenpidehou/Desktop/fdu/eg/Easy-Graph")
 from argparse import ArgumentParser
+
+sys.path.insert(0, "/users/yzhpdh/EasyGraph")
 import torch
 import easygraph as eg
-# print("eg:",eg.__file__)
+
+print("eg:", eg.__file__)
 import dhg
 import torch.nn as nn
 import time
 import random
 import numpy as np
+# from torch_geometric.datasets import Planetoid
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
@@ -26,7 +29,7 @@ def seed_everything(seed):
     torch.backends.cudnn.benchmark = False
 
 
-def data_preprocess(dataset, num_features):
+def eg_data_preprocess(dataset, num_features):
     node_labels = dataset.node_labels
     labels_name = dataset.label_names
     hyperedges = dataset.hyperedges
@@ -46,6 +49,9 @@ def data_preprocess(dataset, num_features):
     train_mask = train_nodes
     val_mask = val_nodes
     test_mask = test_nodes
+    # train_mask[train_nodes] = 1
+    # val_mask[val_nodes] = 1
+    # test_mask[test_nodes] = 1
 
     dataset = {}
     dataset["structure"] = eg.Hypergraph(num_v=len(node_labels), e_list=hyperedges)
@@ -64,22 +70,57 @@ def data_preprocess(dataset, num_features):
 
 
 @torch.no_grad()
-def valid_without_initial_mask(data: dict, model: nn.Module):
+def valid(data: dict, model: nn.Module):
     features, structure = data["features"], data["structure"]
     val_mask, labels = data["val_mask"], data["labels"]
     model.eval()
     outputs = model(features, structure).argmax(dim=1)
+    # pred = model(data)
+    correct = (outputs[val_mask] == labels[val_mask]).sum()
+    # print("output:",outputs)
+    # res = f1_score(labels[val_mask], outputs[val_mask],average='micro')
+    # res = accuracy_score(labels[val_mask], outputs[val_mask])
+    res = int(correct) / len(val_mask)
+    return res
+
+
+@torch.no_grad()
+def valid2(data: dict, model: nn.Module):
+    features, structure = data["features"], data["structure"]
+    val_mask, labels = data["val_mask"], data["labels"]
+    model.eval()
+    outputs = model(features, structure).argmax(dim=1)
+    # pred = model(data)
+    correct = (outputs[val_mask] == labels[val_mask]).sum()
+    # print("output:",outputs)
+    # res = f1_score(labels[val_mask], outputs[val_mask],average='micro')
+    # res = accuracy_score(labels[val_mask], outputs[val_mask])
+    res = int(correct) / int(val_mask.sum())
+    return res
+
+
+@torch.no_grad()
+def test(data: dict, model: nn.Module):
+    features, structure = data["features"], data["structure"]
+    val_mask, labels = data["test_mask"], data["labels"]
+    # model.eval()
+    outputs = model(features, structure).argmax(dim=1)
+    # print("output:",  len(outputs[val_mask]))
+    # print("labels:",labels)
+    # pred = model(data)
     correct = (outputs[val_mask] == labels[val_mask]).sum()
     res = int(correct) / len(val_mask)
     return res
 
 
 @torch.no_grad()
-def valid_with_initial_mask(data: dict, model: nn.Module):
+def test2(data: dict, model: nn.Module):
     features, structure = data["features"], data["structure"]
-    val_mask, labels = data["val_mask"], data["labels"]
-    model.eval()
+    val_mask, labels = data["test_mask"], data["labels"]
+    # model.eval()
     outputs = model(features, structure).argmax(dim=1)
+    # print("output:",  len(outputs[val_mask]))
+    # print("labels:",labels)
     # pred = model(data)
     correct = (outputs[val_mask] == labels[val_mask]).sum()
     res = int(correct) / int(val_mask.sum())
@@ -107,7 +148,6 @@ def train(
     # print("features:",features.shape)
 
     train_mask, labels = data["train_mask"], data["labels"]
-    # print("data[labels]:",data["train_mask"])
     start = time.time()
 
     optimizer.zero_grad()
@@ -118,6 +158,8 @@ def train(
     end = time.time()
     time_add = end - start
     return time_add, loss
+    # print("eg one epoch time:",end-start)
+    # eg_avg_time += end - start
 
 
 def extra_data_preprocess(dataset):
@@ -150,7 +192,7 @@ def extra_data_preprocess(dataset):
     return dataset_new, dataset_dhg
 
 
-def integrated_dataset_preprocess(dataset):
+def acadamic_dataset_preprocess(dataset):
     # cora = eg.CocitationCora()
     dataset.needs_to_load("edge_list")
     dataset.needs_to_load("features")
@@ -159,6 +201,7 @@ def integrated_dataset_preprocess(dataset):
     dataset.needs_to_load("val_mask")
     dataset.needs_to_load("test_mask")
     edge_list = dataset["edge_list"]
+    # print("edge_list:",edge_list)
     labels = dataset["labels"]
     features = dataset["features"]
     dim_features = dataset["dim_features"]
@@ -172,6 +215,7 @@ def integrated_dataset_preprocess(dataset):
     dataset_new["num_classes"] = num_classes
     dataset_new["dim_features"] = dim_features
     dataset_new["features"] = features
+    # print("feature:",cora_features)
     dataset_new["train_mask"] = train_mask
     dataset_new["val_mask"] = val_mask
     dataset_new["test_mask"] = test_mask
@@ -218,35 +262,113 @@ def get_model(input_feature_dim, hidden_dim, output_dim, model_name="hgnn"):
             dhg.models.UniGAT(in_channels=input_feature_dim, hid_channels=hidden_dim,
                               num_classes=output_dim, num_heads=args.heads)
         )
-
+    elif model_name == "unigin":
+        return (
+            eg.UniGIN(in_channels=input_feature_dim, hid_channels=hidden_dim,
+                      num_classes=output_dim),
+            dhg.models.UniGIN(in_channels=input_feature_dim, hid_channels=hidden_dim,
+                              num_classes=output_dim)
+        )
+    elif model_name == "unisage":
+        return (
+            eg.UniSAGE(in_channels=input_feature_dim, hid_channels=hidden_dim,
+                       num_classes=output_dim),
+            dhg.models.UniSAGE(in_channels=input_feature_dim, hid_channels=hidden_dim,
+                               num_classes=output_dim)
+        )
     else:
         print("model does not implement")
 
 
-def dhg_model_train(dhg_model, dhg_dataset, epoch=200):
+def draw_test_curve(time, save_path):
+    plt.clf()
+    epochs = range(1, len(time) + 1)
+    # print("acc_dhg:",acc_dhg)
+    # time = np.array([10, 12, 14, 16, 18, 20, 22, 24, 26, 28])
+    # accuracy = np.array([0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.94, 0.95])
+
+    # 创建图形和坐标轴对象
+    # fig, ax1 = plt.subplots()
+
+    # 绘制第一个纵坐标轴（时间）
+    # ax1.set_xlabel('Epochs')
+    # ax1.set_ylabel('Time (s)')
+    # print("epochs:",epochs)
+    # print("time_dhg:",time_dhg)
+    plt.plot(epochs, time, label='eg Training loss')
+    # plt.plot(epochs, time_eg,label='EG Training loss')
+    # ax1.tick_params(axis='y')
+    plt.title('Training Time Comparison')
+    plt.xlabel('Epochs')
+    plt.ylabel('Time (s)')
+    plt.legend()
+    # ax1.legend(['Time'], loc='upper left')
+
+    # 设置图形标题
+    # plt.title('Double Y-Axis Plot')
+    plt.savefig(save_path)
+
+
+def draw_loss_curve(loss1, loss2, save_path):
+    plt.clf()
+    epochs = range(1, len(loss1) + 1)
+    plt.plot(epochs, loss1, 'b', label='EG Training loss')
+    plt.plot(epochs, loss2, 'r', label='DHG Training loss')
+    plt.title('Training Loss Comparison')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    # plt.xticks(range(1, len(loss1) + 1, 1))
+    # 显示网格
+    plt.grid(True)
+
+    plt.savefig(save_path)
+    # 显示图表
+    # plt.show()
+
+
+def dhg_model_train(dhg_model, dhg_dataset, epoch=100):
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(dhg_model.parameters(), lr=args.lr, weight_decay= args.decay)
     dhg_model.train()
     dhg_val = []
     dhg_loss = []
     dhg_total_time = 0
     dhg_time = []
+    optimizer = torch.optim.Adam(dhg_model.parameters(), lr=args.lr, weight_decay=args.decay)
     for i in range(epoch):
-        # start = time.time()
         t, loss = train(data=dhg_dataset, model=dhg_model, optimizer=optimizer, criterion=loss_fn)
         dhg_total_time += t
         dhg_loss.append(loss.detach().numpy())
         dhg_time.append(t)
-        if dataset_name not in integrated_dataset_lst:
-            f1 = valid_without_initial_mask(data=dhg_dataset, model=dhg_model)
+        if dataset_name not in acadamic_dataset_lst:
+            f1 = valid(data=dhg_dataset, model=dhg_model)
         else:
-            f1 = valid_with_initial_mask(data=dhg_dataset, model=dhg_model)
-        print("dhg f1:", f1)
+            f1 = valid2(data=dhg_dataset, model=dhg_model)
         dhg_val.append(f1)
 
     return dhg_total_time, dhg_val, dhg_loss, dhg_time
 
 
+def eg_model_train(eg_model, eg_dataset, epoch=100):
+    loss_fn = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(eg_model.parameters(), lr=args.lr, weight_decay=args.decay)
+    eg_model.train()
+    eg_val = []
+    eg_loss = []
+    eg_time = []
+    eg_total_time = 0
+    for i in range(epoch):
+        t, loss = train(data=eg_dataset, model=eg_model, optimizer=optimizer, criterion=loss_fn)
+        eg_total_time += t
+        eg_loss.append(loss.detach().numpy())
+        eg_time.append(t)
+        if dataset_name not in acadamic_dataset_lst:
+            f1 = valid(data=eg_dataset, model=eg_model)
+        else:
+            f1 = valid2(data=eg_dataset, model=eg_model)
+        eg_val.append(f1)
+
+    return eg_total_time, eg_val, eg_loss, eg_time
 
 
 if __name__ == '__main__':
@@ -263,18 +385,22 @@ if __name__ == '__main__':
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--decay", type=float, default=0, help="weight decay")
     parser.add_argument("--heads", type=int, default=8, help="heads number")
+    parser.add_argument("--features", type=int, default=100, help="features number")
     args = parser.parse_args()
     seed = args.seed
     seed_everything(seed)
     dataset_name = args.dataset
 
-    # Dimensions of node features for datasets without initial features.
-    num_features = 100
+    num_features = args.features  # 假设每个节点的特征维度
 
-    integrated_dataset_lst = ["cocitation_cora", "cocitation_citeseer", "cocitation_pubmed", "coauthorshipDBLP",
-                              "coauthorshipCora"]
 
     #  2. load dataset
+
+    acadamic_dataset_lst = ["cocitation_cora", "cocitation_citeseer", "cocitation_pubmed", "coauthorshipDBLP",
+                            "coauthorshipCora", "Tencent2k"]
+
+    #  2. load dataset
+
     if dataset_name == "walmart_trips":
         dataset = eg.walmart_trips()
 
@@ -297,27 +423,35 @@ if __name__ == '__main__':
         dataset = eg.CocitationPubmed()
 
     elif dataset_name == "coauthorshipDBLP":
-        dataset = eg.CoauthorshipDBLP()
+        dataset = dhg.data.CoauthorshipDBLP()
 
     elif dataset_name == "coauthorshipCora":
-        dataset = eg.CoauthorshipCora()
+        dataset = dhg.data.CoauthorshipCora()
+
+    elif dataset_name == "news":
+        dataset = dhg.data.News20()
 
     elif dataset_name == "yelp":
-        dataset = eg.YelpRestaurant()
+        dataset = dhg.data.YelpRestaurant()
+
+    elif dataset_name == "Tencent2k":
+        dataset = dhg.data.Tencent2k()
 
     # 3. preprocess dataset
     if dataset_name in ["trivago_clicks", "walmart_trips"]:
-        dataset, dhg_dataset = data_preprocess(dataset, num_features)
-    elif dataset_name in ["yelp"]:
+        dataset, dhg_dataset = eg_data_preprocess(dataset, num_features)
+    elif dataset_name in ["news", "yelp"]:
         dataset, dhg_dataset = extra_data_preprocess(dataset)
     else:
-        dataset, dhg_dataset = integrated_dataset_preprocess(dataset)
+        dataset, dhg_dataset = acadamic_dataset_preprocess(dataset)
+
 
     # train
 
     model_name = args.model
     nodes_num = dataset["structure"].num_v
-    if dataset_name not in integrated_dataset_lst and dataset_name not in ["yelp"]:
+    print("nodes_num:", nodes_num)
+    if dataset_name not in acadamic_dataset_lst and dataset_name not in ["yelp", "news"]:
         eg_model, dhg_model = get_model(model_name=model_name, input_feature_dim=num_features, hidden_dim=args.hid,
                                         output_dim=dataset["num_classes"])
 
@@ -325,19 +459,26 @@ if __name__ == '__main__':
         eg_model, dhg_model = get_model(model_name=model_name, input_feature_dim=dataset["dim_features"],
                                         hidden_dim=args.hid, output_dim=dataset["num_classes"])
 
+    loss_fn1 = nn.CrossEntropyLoss()
+    loss_fn2 = nn.CrossEntropyLoss()
+
+
     rep_dhg_total_time = 0
+    rep_eg_total_time = 0
+    eg_time = []
     dhg_time_lst = []
+    eg_loss = []
     dhg_loss = []
+    eg_val = []
     dhg_val = []
     epoch = args.epoch
-
     with open(args.log_output_path, 'w') as f:
-        f.write(f"EG Start train on dataset {dataset_name}, model:{model_name}\n")
-    if dataset_name not in integrated_dataset_lst:
+        f.write(f"DHG Start train on dataset {dataset_name}, model:{model_name}\n")
+
+    if dataset_name not in acadamic_dataset_lst:
         rep_time = 3
     else:
         rep_time = 3
-
     for rep in range(rep_time):
         dhg_total_time, dhg_val, dhg_loss, dhg_time = dhg_model_train(dhg_model=copy.deepcopy(dhg_model),
                                                                       dhg_dataset=dhg_dataset, epoch=epoch)
@@ -346,12 +487,12 @@ if __name__ == '__main__':
 
     print("dhg_total_time:", rep_dhg_total_time / rep_time)
 
+
     from torch import tensor
 
     dhg_time_lst = tensor(dhg_time_lst)
     print("dhg_time_lst:", dhg_time_lst)
     with open(args.log_output_path, 'a+') as f:
         f.write(f'AVG TIME: {float(dhg_time_lst.mean()):.3f} ± {float(dhg_time_lst.std()):.3f} ')
-
 
 

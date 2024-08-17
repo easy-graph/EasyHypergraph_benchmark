@@ -4,7 +4,7 @@ import time
 
 
 def record_memory(pid):
-    with open('memory_usage_xgi_40k.csv', 'a', newline='') as file:
+    with open('memory_usage_xgi_trivago.csv', 'a', newline='') as file:
         writer = csv.writer(file)
         while True:
             try:

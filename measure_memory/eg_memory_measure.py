@@ -1,7 +1,11 @@
+import sys
+sys.path.insert(0,"/opt/reconstruct/Easy-Graph")
 import easygraph as eg
 import dhg
 import random
 random.seed(42)
+
+
 
 
 def load_dataset(nodes_path, edges_path):
@@ -29,24 +33,22 @@ def load_dataset(nodes_path, edges_path):
     return hg
 
 def load_integrated_dataset(dataset_name = "cora"):
-    if dataset_name == 'cora_cocitation':
-        cocitation_dataset = eg.CocitationCora()
-    elif dataset_name == "cora_authorship":
-        cocitation_dataset = dhg.data.CoauthorshipCora()
+    if dataset_name == 'trivago_clicks':
+        dataset = eg.trivago_clicks()
     elif dataset_name == "pubmed":
-        cocitation_dataset = eg.CocitationPubmed()
+        dataset = eg.CocitationPubmed()
     elif dataset_name == "dblp_authorship":
-        cocitation_dataset = dhg.data.CoauthorshipDBLP()
-    else:
-        cocitation_dataset = eg.CocitationCiteseer()
+        dataset = eg.CoauthorshipDBLP()
+    elif dataset_name == "yelp":
+        dataset = eg.YelpRestaurant()
 
-    cocitation_dataset.needs_to_load("edge_list")
-    edge_lst = set()
+    if dataset_name not in ['trivago_clicks']:
+        dataset.needs_to_load("edge_list")
+
     edge_reindex_lst = set()
     node_dict = {}
     node_index = 0
-    for e in cocitation_dataset['edge_list']:
-        # edge_lst.add(tuple(e))
+    for e in dataset['edge_list']:
         edge_reindex = []
         for n in e:
             if n not in node_dict:
@@ -62,14 +64,13 @@ def load_integrated_dataset(dataset_name = "cora"):
     eg_hg = eg.Hypergraph(num_v=len(node_dict),e_list=edge_reindex_lst)
     return eg_hg
 
-# def run_fun():
-    
+
 
 if __name__ == "__main__":
-    # hg_eg = load_integrated_dataset("dblp_authorship")
+    hg_eg = load_integrated_dataset("trivago_clicks")
     
-    hg_eg = load_dataset("/home/msn/ybd/Easy-Graph/hypergraph-bench/eg_hypergraph_dataset/walmart-trips/node-labels-walmart-trips.txt",
-                         "/home/msn/ybd/Easy-Graph/hypergraph-bench/eg_hypergraph_dataset/walmart-trips/hyperedges-walmart-trips.txt")
+    # hg_eg = load_dataset("/home/msn/ybd/Easy-Graph/hypergraph-bench/eg_hypergraph_dataset/walmart-trips/node-labels-walmart-trips.txt",
+    #                      "/home/msn/ybd/Easy-Graph/hypergraph-bench/eg_hypergraph_dataset/walmart-trips/hyperedges-walmart-trips.txt")
     
     ic = hg_eg.incidence_matrix
     

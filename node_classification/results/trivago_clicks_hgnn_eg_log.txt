@@ -1,1 +1,0 @@
-EG Start train on dataset trivago_clicks, model:hgnn
