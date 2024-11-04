@@ -1,7 +1,6 @@
 import copy
 import os, sys
 from argparse import ArgumentParser
-# sys.path.insert(0,"/users/yzhpdh/EasyGraph")
 
 import torch
 import easygraph as eg
@@ -192,7 +191,6 @@ def acadamic_dataset_preprocess(dataset):
     dataset.needs_to_load("val_mask")
     dataset.needs_to_load("test_mask")
     edge_list = dataset["edge_list"]
-    # print("edge_list:",edge_list)
     labels = dataset["labels"]
     features = dataset["features"]
     dim_features = dataset["dim_features"]
@@ -379,7 +377,7 @@ if __name__ == '__main__':
     parser.add_argument("--features", type=int, default=100, help="features number")
     args = parser.parse_args()
     seed = args.seed
-    seed_everything(seed)
+    # seed_everything(seed)
     dataset_name = args.dataset
 
     num_features = args.features  # 假设每个节点的特征维度
@@ -462,14 +460,14 @@ if __name__ == '__main__':
         f.write(f"EG Start train on dataset {dataset_name}, model:{model_name}\n")
     # print(f"Start train on dataset {dataset_name}, model:{model_name}\n")
     if dataset_name not in acadamic_dataset_lst:
-        rep_time = 3
+        rep_time = 5
     else:
-        rep_time = 3
+        rep_time = 5
 
 
     for rep in range(rep_time):
         eg_total_time, eg_val, eg_loss, eg_time = eg_model_train(eg_model=copy.deepcopy(eg_model), eg_dataset=dataset,
-                                                                 optimizer=optimizer1, epoch=epoch)
+                                                                  epoch=epoch)
         rep_eg_total_time += eg_total_time
         eg_time_lst.append(eg_total_time)
 

@@ -2,11 +2,9 @@ import copy
 import os, sys
 from argparse import ArgumentParser
 
-sys.path.insert(0, "/users/yzhpdh/EasyGraph")
 import torch
 import easygraph as eg
 
-print("eg:", eg.__file__)
 import dhg
 import torch.nn as nn
 import time
@@ -388,7 +386,7 @@ if __name__ == '__main__':
     parser.add_argument("--features", type=int, default=100, help="features number")
     args = parser.parse_args()
     seed = args.seed
-    seed_everything(seed)
+    # seed_everything(seed)
     dataset_name = args.dataset
 
     num_features = args.features  # 假设每个节点的特征维度
@@ -476,9 +474,9 @@ if __name__ == '__main__':
         f.write(f"DHG Start train on dataset {dataset_name}, model:{model_name}\n")
 
     if dataset_name not in acadamic_dataset_lst:
-        rep_time = 3
+        rep_time = 5
     else:
-        rep_time = 3
+        rep_time = 5
     for rep in range(rep_time):
         dhg_total_time, dhg_val, dhg_loss, dhg_time = dhg_model_train(dhg_model=copy.deepcopy(dhg_model),
                                                                       dhg_dataset=dhg_dataset, epoch=epoch)
