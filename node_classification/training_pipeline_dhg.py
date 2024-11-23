@@ -1,10 +1,8 @@
 import copy
 import os, sys
 from argparse import ArgumentParser
-
 import torch
 import easygraph as eg
-
 import dhg
 import torch.nn as nn
 import time
@@ -343,7 +341,7 @@ def dhg_model_train(dhg_model, dhg_dataset, epoch=100):
         else:
             f1 = valid2(data=dhg_dataset, model=dhg_model)
         dhg_val.append(f1)
-
+    print(dhg_val[len(dhg_val) - 1])
     return dhg_total_time, dhg_val, dhg_loss, dhg_time
 
 
@@ -390,7 +388,6 @@ if __name__ == '__main__':
     dataset_name = args.dataset
 
     num_features = args.features  # 假设每个节点的特征维度
-
 
     #  2. load dataset
 
@@ -443,7 +440,6 @@ if __name__ == '__main__':
     else:
         dataset, dhg_dataset = acadamic_dataset_preprocess(dataset)
 
-
     # train
 
     model_name = args.model
@@ -459,7 +455,6 @@ if __name__ == '__main__':
 
     loss_fn1 = nn.CrossEntropyLoss()
     loss_fn2 = nn.CrossEntropyLoss()
-
 
     rep_dhg_total_time = 0
     rep_eg_total_time = 0
@@ -477,6 +472,7 @@ if __name__ == '__main__':
         rep_time = 5
     else:
         rep_time = 5
+
     for rep in range(rep_time):
         dhg_total_time, dhg_val, dhg_loss, dhg_time = dhg_model_train(dhg_model=copy.deepcopy(dhg_model),
                                                                       dhg_dataset=dhg_dataset, epoch=epoch)
@@ -484,7 +480,6 @@ if __name__ == '__main__':
         dhg_time_lst.append(dhg_total_time)
 
     print("dhg_total_time:", rep_dhg_total_time / rep_time)
-
 
     from torch import tensor
 

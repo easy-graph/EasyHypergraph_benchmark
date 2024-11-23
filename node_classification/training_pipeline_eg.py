@@ -5,7 +5,6 @@ from argparse import ArgumentParser
 import torch
 import easygraph as eg
 
-print("eg:", eg.__file__)
 import dhg
 import torch.nn as nn
 import time
@@ -191,6 +190,7 @@ def acadamic_dataset_preprocess(dataset):
     dataset.needs_to_load("val_mask")
     dataset.needs_to_load("test_mask")
     edge_list = dataset["edge_list"]
+    # print("edge_list:",edge_list)
     labels = dataset["labels"]
     features = dataset["features"]
     dim_features = dataset["dim_features"]
@@ -356,7 +356,7 @@ def eg_model_train(eg_model, eg_dataset, epoch=100):
         else:
             f1 = valid2(data=eg_dataset, model=eg_model)
         eg_val.append(f1)
-
+    print(eg_val[len(eg_val)-1])
     return eg_total_time, eg_val, eg_loss, eg_time
 
 
@@ -467,7 +467,7 @@ if __name__ == '__main__':
 
     for rep in range(rep_time):
         eg_total_time, eg_val, eg_loss, eg_time = eg_model_train(eg_model=copy.deepcopy(eg_model), eg_dataset=dataset,
-                                                                  epoch=epoch)
+                                                                 epoch=epoch)
         rep_eg_total_time += eg_total_time
         eg_time_lst.append(eg_total_time)
 
