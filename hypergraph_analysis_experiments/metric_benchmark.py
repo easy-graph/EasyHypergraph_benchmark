@@ -1,7 +1,4 @@
 import sys
-# print("eg",eg.__file__)
-# sys.path.insert(0,"/Users/yizhihenpidehou/Desktop/fdu/eg/xgi-main")
-sys.path.insert(0,"/home/msn/ybd/Easy-Graph")
 
 import easygraph as eg
 import dhg
@@ -13,10 +10,6 @@ import time
 random.seed(42)
 import pandas as pd
 
-print("sys path",sys.path)
-print("eg",eg.__file__)
-print("xgi:",xgi.__file__)
-
 def dataset_property(hg):
     degree_dict = hg_eg.degree_node
     avg_degree = sum(degree_dict.values())/len(degree_dict)
@@ -26,18 +19,17 @@ def load_integrated_dataset(dataset_name = "cora"):
     if dataset_name == 'cora_cocitation':
         cocitation_dataset = eg.CocitationCora()
     elif dataset_name == "cora-coauthorship":
-        cocitation_dataset = dhg.data.CoauthorshipCora()
+        cocitation_dataset = eg.CoauthorshipCora()
     elif dataset_name == "pubmed":
         cocitation_dataset = eg.CocitationPubmed()
     elif dataset_name == "dblp_authorship":
-        cocitation_dataset = dhg.data.CoauthorshipDBLP()
+        cocitation_dataset = eg.CoauthorshipDBLP()
     elif dataset_name == "yelp":
-        cocitation_dataset = dhg.data.YelpRestaurant()
+        cocitation_dataset = eg.YelpRestaurant()
     else:
         cocitation_dataset = eg.CocitationCiteseer()
 
     cocitation_dataset.needs_to_load("edge_list")
-    edge_lst = set()
     edge_reindex_lst = set()
     node_dict = {}
     node_index = 0
@@ -54,25 +46,19 @@ def load_integrated_dataset(dataset_name = "cora"):
         edge_reindex_lst.add(tuple(edge_reindex))
 
 
-            # node_dict[n] = 1
-    # for e in cocitation_dataset['edge_list']:
-
     print("node dict:",len(node_dict))
     print("edge_reindex_lst:",len(edge_reindex_lst))
     total_edge_size = 0
     for e in edge_reindex_lst:
         total_edge_size += len(e)
     print("avg hyperedge size:",total_edge_size/len(edge_reindex_lst))
-    # edge_lst = list(edge_lst)
     edge_reindex_lst = list(edge_reindex_lst)
     eg_hg = eg.Hypergraph(num_v=len(node_dict),e_list=edge_reindex_lst)
     print("hg_eg len:",len(eg_hg.e[0]),"vertices:",eg_hg.num_v)
     hg_hnx = hnx.Hypergraph(edge_reindex_lst)
-    # hg_hnx = hnx.from_incidence_dataframe(eg_hg.incidence_matrix)
     print("hg_hhx len:", len(hg_hnx.edges), "vertices:", len(hg_hnx.nodes))
     hg_xgi = xgi.Hypergraph(edge_reindex_lst)
     print("hg_xgi len:", len(hg_xgi.edges), "vertices:", len(hg_xgi.nodes))
-
 
     return eg_hg,hg_hnx,hg_xgi
 
@@ -88,7 +74,6 @@ def load_dataset(nodes_path, edges_path):
             node_num += 1
 
     print("node_num:",node_num)
-    # hg = eg.Hypergraph(num_v = node_num)
 
     edge_set = set()
     with open(edges_path, 'r') as egdes_file:
@@ -106,7 +91,6 @@ def load_dataset(nodes_path, edges_path):
     
     hg_hnx = hnx.Hypergraph(list(edge_set))
     hg_xgi = xgi.Hypergraph(list(edge_set))
-    hg_hgx = hgx.Hypergraph(edge_list = list(edge_set))
     print('hg_eg:',hg)
     print("hg_hnx:",len(hg_hnx.nodes),len(hg_hnx.edges))
     print("hg_xgi:",len(hg_xgi.nodes),len(hg_xgi.edges))
@@ -118,11 +102,6 @@ def load_dataset(nodes_path, edges_path):
 def comp_fun(dataset,hg_eg, hg_xgi, hg_hnx):
     columns = ["metric","EasyGraph","XGI","HyperNetX"]
     df = pd.DataFrame(columns=columns)
-    df_record = []
-    import random
-    n = 1000
-    k1 = {i: random.randint(1, 10000) for i in range(n)}
-    k2 = {i: sorted(k1.values())[i] for i in range(n)}
     print("finish_loading...")
 
     print("incidence matrix:")
@@ -134,12 +113,12 @@ def comp_fun(dataset,hg_eg, hg_xgi, hg_hnx):
     hnx_incidence_matrix_time = benchmark("hg_hnx.incidence_matrix()", globals=globals(), n=5)
     print("hg_hnx incidence_matrix time:", hnx_incidence_matrix_time)
 
-    
     df_record=["incidence_matrix",eg_incidence_matrix_time, xgi_incidence_matrix_time, hnx_incidence_matrix_time]
     df.loc[len(df)] = df_record
 
-    
-    print("degree")
+    print()
+
+    print("degree:")
     eg_degree_time = benchmark("hg_eg.degree_node", globals=globals(), n=5)
     print("eg degree:", eg_degree_time)
     
@@ -155,7 +134,8 @@ def comp_fun(dataset,hg_eg, hg_xgi, hg_hnx):
     df_record=["degree",eg_degree_time, xgi_degree_time, hnx_degree_mean_time]
     df.loc[len(df)] = df_record
 
-    print("distance")
+    print()
+    print("distance:")
     eg_distance_time = benchmark("hg_eg.distance(0)", globals=globals(), n=5)
     print("eg distance:", eg_distance_time)
     
@@ -171,10 +151,9 @@ def comp_fun(dataset,hg_eg, hg_xgi, hg_hnx):
     df_record = ["distance",eg_distance_time, xgi_distance_time, hnx_distance_time]
 
     df.loc[len(df)] = df_record
-    # df.to_csv('results.csv', mode='a',  header=False ,index=False)
 
-
-    print("neighbors")
+    print()
+    print("neighbors:")
     eg_neighbors_time = 0
     for node in range(hg_eg.num_v):
         eg_neighbors_time += benchmark("hg_eg.neighbor_of_node("+str(node)+")", globals=globals(), n=5)
@@ -189,7 +168,6 @@ def comp_fun(dataset,hg_eg, hg_xgi, hg_hnx):
     for node in range(hg_eg.num_v):
         hnx_neighbors_time += benchmark("hg_hnx.neighbors("+str(node)+")", globals=globals(), n=5)
     print("hg_hnx neighbors:", hnx_neighbors_time)
-    
 
     
     df_record = ["neighbors",eg_neighbors_time, xgi_neighbors_time, hnx_neighbors_time, hgx_neighbors_time]
