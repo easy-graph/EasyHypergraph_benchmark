@@ -1,5 +1,5 @@
-# easygraph_hypergraph_benchmark_20240201
-Benchmark codes for EasyGraph-hypergraph
+# EasyHypergraph_benchmark
+Benchmark codes for EasyHypergraph
 
 ## Supported Versions
 3.8 <= Python <= 3.13 is required.
