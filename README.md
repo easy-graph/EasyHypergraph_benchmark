@@ -1,10 +1,15 @@
 # EasyHypergraph_benchmark
 Benchmark codes for EasyHypergraph
 
-## Supported Versions
+## Installation
+
+### Environment
+The Ubuntu 20.04 Server features an Intel(R) Xeon(R) CPU E5 - 2690 v2 with a clock speed of 3.00GHz and 31 GB of Random Access Memory.
+
+### Supported Python
 3.8 <= Python <= 3.13 is required.
 
-## Package install
+### Package install
 ```
 pip install --upgrade Python-EasyGraph
 ```
@@ -21,7 +26,7 @@ or
 
 ```
 cd hypergraph_analysis_experiments
-python3 metric_benchmark.py
+python metric_benchmark.py
 ```
 
 
