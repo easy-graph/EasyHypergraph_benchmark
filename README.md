@@ -31,7 +31,7 @@ or
 
 ## Usage
 
-### Source code
+### Related source code
 
 - Easy-Graph/easygraph/classes/hypergraph.py
 - Easy-Graph/easygraph/functions/hypergraph
