@@ -1,7 +1,6 @@
 # EasyHypergraph: an open-source software for fast and memory-saving analysis and learning of higher-order networks
 
-[Bodian Ye](https://bdye.mysxl.cn/), [Min Gao](https://mgao97.github.io/), [Xiu-Xiu Zhan](https://scholar.google.com/citations?user=N6n_MhEAAAAJ&hl=zh-CN&oi=sra), [Xinlei He](https://xinleihe.github.io/), [Zi-Ke Zhang](https://scholar.google.com/citations?user=jtQ2xZMAAAAJ&hl=zh-CN&oi=ao), [Qingyuan Gong](https://gongqingyuan.wordpress.com/), [Xin Wang](https://scholar.google.com/citations?hl=zh-CN&user=qvpWjSsAAAAJ&view_op=list_works&sortby=pubdate), \
-[Yang Chen](https://chenyang03.wordpress.com/)
+[Bodian Ye](https://bdye.mysxl.cn/), [Min Gao](https://mgao97.github.io/), [Xiu-Xiu Zhan](https://scholar.google.com/citations?user=N6n_MhEAAAAJ&hl=zh-CN&oi=sra), [Xinlei He](https://xinleihe.github.io/), [Zi-Ke Zhang](https://scholar.google.com/citations?user=jtQ2xZMAAAAJ&hl=zh-CN&oi=ao), [Qingyuan Gong](https://gongqingyuan.wordpress.com/), [Xin Wang](https://scholar.google.com/citations?hl=zh-CN&user=qvpWjSsAAAAJ&view_op=list_works&sortby=pubdate), [Yang Chen](https://chenyang03.wordpress.com/)
 
 ## Introduction
 We present a comprehensive, computation-effective, and storage-saving hypergraph library designed not only for in-depth hypergraph analysis but also for the growing field of hypergraph learning. The library, called EasyHypergraph, allows users from multiple disciplines to input hypergraph data, efficiently perform hypergraph
