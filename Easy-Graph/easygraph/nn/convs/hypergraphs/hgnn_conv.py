@@ -51,7 +51,7 @@ class HGNNConv(nn.Module):
         X = self.theta(X)
         if self.bn is not None:
             X = self.bn(X)
-        X = hg.smoothing_with_HGNN(X)
+        X = hg.smoothing_with_HGNN(X=X)
         if not self.is_last:
             X = self.drop(self.act(X))
         return X

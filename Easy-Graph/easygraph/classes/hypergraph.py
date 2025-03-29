@@ -1489,7 +1489,7 @@ class Hypergraph(BaseHypergraph):
                 torch.arange(0, _num_e),
                 _tmp,
                 torch.Size([_num_e, _num_e]),
-                device=self.device,
+                # device=self.device,
             )
 
         return self.cache["D_e"]
